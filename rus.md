@@ -278,11 +278,9 @@ $ (echo abc; sleep 1; echo def; sleep 1; echo ghi) | node consume2.js
 'hi\n'
 ```
 
-You can also use `.unshift()` to put back data so that the same read logic will
-fire when `.read()` gives you more data than you wanted.
+В случае если вы получили больше данных чем вам требуется - можно использовать `.unshift()` чтобы вернуть их назад.
 
-Using `.unshift()` prevents us from making unnecessary buffer copies. Here we
-can build a readable parser to split on newlines:
+Использование `.unshift()` помогает нам предотвратить получение ненужных частей. К примеру, создадим парсер который разделяет абзац на строки с делителем - переносом строки:
 
 ``` js
 var offset = 0;
