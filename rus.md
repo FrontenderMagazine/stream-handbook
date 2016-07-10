@@ -83,13 +83,13 @@ server.listen(8000);
 
 # Основы
 
-Существует 5 видов потоков: для чтения (readable), для записи (writeable), трансформирующие (transform), дуплексные (duplex) и "классические" (classic).
+Существует 5 видов потоков: на чтение (readable), на запись (writeable), трансформирующие (transform), дуплексные (duplex) и классические (classic).
 
 ## pipe()
 
 Все типы потоков могут использовать`.pipe()` для соединения входов с выходами.
 
-`.pipe()` всего лишь функция, которая берет поток для чтения`src` и соединяет его вывод с вводом потока для записи `dst`:
+`.pipe()` всего лишь функция, которая берет поток на чтение `src` и соединяет его вывод с вводом потока на запись `dst`:
 
 ```
 src.pipe(dst)
@@ -114,15 +114,15 @@ c.pipe(d);
 a | b | c | d
 ```
 
-## Потоки для чтения (readable)
+## Потоки на чтение (readable)
 
-Потоки для чтения производят данные, которые с помощью `.pipe()` могут быть переданы в поток для записи, трансформирующий или дуплексный поток:
+Потоки на чтение производят данные которые с помощью `.pipe()` могут быть переданы в поток на запись, трансформирующий или дуплексный поток:
 
 ``` js
 readableStream.pipe(dst)
 ```
 
-### Создаем поток для чтения
+### Создание потока на чтение
 
 Давайте создадим считываемый поток!
 
@@ -144,9 +144,9 @@ beep boop
 
 `rs.push(null)` сообщает потребителю, что `rs` закончил вывод данных.
 
-Заметьте, мы отправили содержимое в поток для чтения `rs` ДО привязывания его к `process.stdout`, но сообщение все равно появилось в консоли.
+Заметьте, мы отправили содержимое в поток на чтение `rs` ДО привязывания его к `process.stdout`, но сообщение все равно появилось в консоли.
 
-Когда вы посылаете с помощью `.push()` данные в поток для чтения, они буферизируются до тех пор пока потребитель не будет готов их прочитать.
+Когда вы посылаете с помощью `.push()` данные в поток на чтение, они буферизируются до тех пор пока потребитель не будет готов их прочитать.
 
 Тем не менее, в большинстве случаев будет лучше если мы не будем их буферизировать совсем, вместо этого будем генерировать их только когда данные запрашиваются потребителем.
 
@@ -216,7 +216,7 @@ _read() called 5 times
 
 Если вы хотите создать читаемый поток, который выдает произвольные форматы данных вместо строк и буферов, убедитесь что вы его инициализировали с соответствующей опцией: `Readable ({ objectMode: true })`.
 
-### Использование потока для чтения
+### Использование потока на чтение
 
 В большинстве случаев мы будем подключать такой поток к другому потоку, созданному нами или модулями наподобие [through](https://npmjs.org/package/through),  [concat-stream](https://npmjs.org/package/concat-stream). Но иногда может потребоваться использовать его напрямую.
 
@@ -315,22 +315,19 @@ $ tail -n +50000 /usr/share/dict/american-english | head -n10 | node lines.js
 'heartlessly'
 ```
 
-However, there are modules on npm such as
-[split](https://npmjs.org/package/split) that you should use instead of rolling
-your own line-parsing logic.
+Код выше приведен только для примера, если вам действительно нужно будет разбить строку - лучше будет воспользователься специализированым модулем [split](https://npmjs.org/package/split) и не изобретать велосипед.
 
-## writable streams
+## Потоки на запись
 
-A writable stream is a stream you can `.pipe()` to but not from:
+В поток на запись можно послать данные используя `.pipe()`, но прочитать их уже не получится:
 
 ``` js
 src.pipe(writableStream)
 ```
 
-### creating a writable stream
+### Создание потока на запись
 
-Just define a `._write(chunk, enc, next)` function and then you can pipe a
-readable stream in:
+Просто определяем методо `._write(chunk, enc, next)`, и теперь в наш поток можно передавать данные:
 
 ``` js
 var Writable = require('stream').Writable;
@@ -349,33 +346,25 @@ $ (echo beep; sleep 1; echo boop) | node write0.js
 <Buffer 62 6f 6f 70 0a>
 ```
 
-The first argument, `chunk` is the data that is written by the producer.
+Первый аргумент, `chunk`, это данные которые посылает отправитель.
 
-The second argument `enc` is a string with the string encoding, but only when
-`opts.decodeString` is `false` and you've been written a string.
+Второй аргумент, `enc`, это строка с названием кодировки. Она используется только в случае когда опция `opts.decodeString` установлена в `false`, и вы отправляете строку.
 
-The third argument, `next(err)` is the callback that tells the consumer that
-they can write more data. You can optionally pass an error object `err`, which
-emits an `'error'` event on the stream instance.
+Третий аргумент, `next(err)`, является калбеком, сообщающим отправителю что можно послать еще данные. Если вы вызовите его с параметром `err`, в потоке будет создано событие `'error'`.
 
-If the readable stream you're piping from writes strings, they will be converted
-into `Buffer`s unless you create your writable stream with
-`Writable({ decodeStrings: false })`.
+В случае если поток из которого вы читаете передает строки, они будут преобразовываться в `Buffer`. Чтобы отключить преобразование - создайте поток на запись с соответствующим параметром: `Writable({ decodeStrings: false })`.
 
-If the readable stream you're piping from writes objects, create your writable
-stream with `Writable({ objectMode: true })`.
+Если поток на чтение передает объекты - явно укажите это в параметрах: `Writable({ objectMode: true })`.
 
-### writing to a writable stream
+### Отправка данных в поток на запись
 
-To write to a writable stream, just call `.write(data)` with the `data` you want
-to write!
+Чтобы передать данные в поток на запись - вызовите `.write(data)`, где `data` это наобр данных которые вы хотите записать.
 
 ``` js
 process.stdout.write('beep boop\n');
 ```
 
-To tell the destination writable stream that you're done writing, just call
-`.end()`. You can also give `.end(data)` some `data` to write before ending:
+Если вы хотите сообщить что вы закончили запись - вызовите `.end()` (или `.end(data)` чтобы отправить еще немного данных перед завершением):
 
 ``` js
 var fs = require('fs');
@@ -394,55 +383,37 @@ $ cat message.txt
 beep boop
 ```
 
-If you care about high water marks and buffering, `.write()` returns false when
-there is more data than the `opts.highWaterMark` option passed to `Writable()`
-in the incoming buffer.
+Не беспокойтесь о синхронизации данных и буферизации, `.write()` вернет `false` если в буфере скопилось данных больше чем указывалось в параметре `opts.highWaterMark` при создании потока. В этом случае следует подождать события `'drain'`, которое сигнализирует о том что данные можно снова писать.
 
-If you want to wait for the buffer to empty again, listen for a `'drain'` event.
+## Трансформирующие потоки (transform)
 
-## transform
+Трансформирующие потоки это частный случай дуплексных потоков (в обоих случаех они могут использоваться как для записи, так и чтения). Разница в том, что в случае трансформации отдаваемые данные так или иначе зависят от того что подается на вход.
 
-Transform streams are a certain type of duplex stream (both readable and writable).
-The distinction is that in Transform streams, the output is in some way calculated
-from the input.
+Возможно, вы также встречали второе название таких потоков - "сквозные" ("through streams"). В любом случае, это просто фильтры которые преобразовывают входящие данные и отдают их.
 
-You might also hear transform streams referred to as "through streams".
+## Дуплексные потоки (duplex)
 
-Through streams are simple readable/writable filters that transform input and
-produce output.
-
-## duplex
-
-Duplex streams are readable/writable and both ends of the stream engage
-in a two-way interaction, sending back and forth messages like a telephone. An
-rpc exchange is a good example of a duplex stream. Any time you see something
-like:
+Дуплексные потоки наследуют методы как от потоков на чтение, так и от потоков на запись. Это позволяет им действовать в обоих направлениях - читать данные, и записывать их в обе стороны. В качестве аналогии можно привести телефон. Если вам требуется сделать что-нибудь типа такого:
 
 ``` js
 a.pipe(b).pipe(a)
 ```
 
-you're probably dealing with a duplex stream.
+значит вам нужен дуплексный поток.
 
-## classic streams
+## Классические потоки
 
-Classic streams are the old interface that first appeared in node 0.4.
-You will probably encounter this style of stream for a long time so it's good to
-know how they work.
+В первых версиях node существовал "классический" интерфейс потоков. Его потом переработали, и в текущем виде практически нигде не используют. Однако, возможно вы встретитесь с ним при поддержке старых версий программ, поэтому мы разберем как он работает.
 
-Whenever a stream has a `"data"` listener registered, it switches into
-`"classic"` mode and behaves according to the old API.
+Когда поток регистририрует функцию-слушателя события `"data"`, он переключается в `"classic"` режим, и начинает вести себя в соответствии со старым API.
 
-### classic readable streams
+### Классические потоки на чтение
 
-Classic readable streams are just event emitters that emit `"data"` events when
-they have data for their consumers and emit `"end"` events when they are done
-producing data for their consumers.
+Думайте о классических потоках на чтения как об обычных эмиттерах событий, которые создают событие `"data"` каждый раз когда появляются данные для получателей, и событие `"end"` когда данные заканчиваются.
 
-`.pipe()` checks whether a classic stream is readable by checking the truthiness
-of `stream.readable`.
+Метод `.pipe()` узнает является ли "классический" поток потоком на чтение, проверяя правдивость свойства `stream.readable`.
 
-Here is a super simple readable stream that prints `A` through `J`, inclusive:
+К примеру, вот простейший поток на чтение который печатает буквы от `A` до `J`:
 
 ``` js
 var Stream = require('stream');
@@ -466,9 +437,7 @@ $ node classic0.js
 ABCDEFGHIJ
 ```
 
-To read from a classic readable stream, you register `"data"` and `"end"`
-listeners. Here's an example reading from `process.stdin` using the old readable
-stream style:
+Для чтения из классическового потока, надо зарегистрировать функции-слушатели на события `"data"` и `"end"`. Пример чтения данных из `process.stdin`  используя "классический" стиль:
 
 ``` js
 process.stdin.on('data', function (buf) {
@@ -486,15 +455,9 @@ $ (echo beep; sleep 1; echo boop) | node classic1.js
 __END__
 ```
 
-Note that whenever you register a `"data"` listener, you put the stream into
-compatability mode so you lose the benefits of the new streams2 api.
+Запомните, что всегда когда вы регистрируете слушателя на событие `"data"` - в целях совместимости он превращается "классический", и вы теряете все преимущества нового API потоков. Поэтому, старайтесь никогда не регистрировать обработчики на `"data"` и `"end"` самостоятельно. Для взаимодействия со старыми версиями потоков, вместо этого, там где возможно используйте специализированные библиотеки которые возьмут все вопросы совместимости на себя.
 
-You should pretty much never register `"data"` and `"end"` handlers yourself
-anymore. If you need to interact with legacy streams, use libraries that you can
-`.pipe()` to instead where possible.
-
-For example, you can use [through](https://npmjs.org/package/through)
-to avoid setting up explicit `"data"` and `"end"` listeners:
+К примеру, чтобы избежать установки слушателей `"data"` и `"end"` подойдет модуль [through](https://npmjs.org/package/through):
 
 ``` js
 var through = require('through');
@@ -515,8 +478,7 @@ $ (echo beep; sleep 1; echo boop) | node through.js
 __END__
 ```
 
-or use [concat-stream](https://npmjs.org/package/concat-stream) to buffer up an
-entire stream's contents:
+а для буферизации всего содержимого потока сойдет [concat-stream](https://npmjs.org/package/concat-stream):
 
 ``` js
 var concat = require('concat-stream');
@@ -530,62 +492,44 @@ $ echo '{"beep":"boop"}' | node concat.js
 { beep: 'boop' }
 ```
 
-Classic readable streams have `.pause()` and `.resume()` logic for provisionally
-pausing a stream, but this was merely advisory. If you are going to use
-`.pause()` and `.resume()` with classic readable streams, you should use
-[through](https://npmjs.org/package/through) to handle buffering instead of
-writing that yourself.
+У классических потоков на чтение для остановки и продолжения есть методы `.pause()` и `.resume()`, но их использования следует избегать. Если вам необходим этот фуникционал - рекомендуется не создавать логику самостоятельно, а использовать модуль [through](https://npmjs.org/package/through).
 
-### classic writable streams
+### Классические потоки на запись
 
-Classic writable streams are very simple. Just define `.write(buf)`, `.end(buf)`
-and `.destroy()`.
+Классические потоки на запись очень просты. Просто опишите методы `.write(buf)`, `.end(buf)`
+и `.destroy()`.
 
-`.end(buf)` may or may not get a `buf`, but node people will expect `stream.end(buf)`
-to mean `stream.write(buf); stream.end()` and you shouldn't violate their
-expectations.
+В основном разработчики под node ожидают что метод  `stream.end(buf)` будет эмулировать поведение `stream.write(buf); stream.end()`, и нам не следует их разочаровывать.
 
-## read more
+## Узнать больше
 
-* [core stream documentation](http://nodejs.org/docs/latest/api/stream.html#stream_stream)
-* You can use the [readable-stream](https://npmjs.org/package/readable-stream)
-module to make your streams2 code compliant with node 0.8 and below. Just
-`require('readable-stream')` instead of `require('stream')` after you
-`npm install readable-stream`.
+Вы прочитали про базовые понятия касающиеся потоков, если вы хотите узнать больше - обратитесь к актуальной [документация по потокам](http://nodejs.org/docs/latest/api/stream.html#stream_stream). В случае если вам понадобится сделать API2 потоков совместимым с "классическим" API - используйте модуль [readable-stream](https://npmjs.org/package/readable-stream). Просто подключите его в свой проект: `require('readable-stream')` вместо `require('stream')`.
 
 ***
 
-# built-in streams
+# Встроеные потоки
 
-These streams are built into node itself.
+Эти потоки поставляются с node и могут быть использованы без дополнительных библиотек.
 
 ## process
 
 ### [process.stdin](http://nodejs.org/docs/latest/api/process.html#process_process_stdin)
 
-This readable stream contains the standard system input stream for your program.
+Поток на чтение содержит стандартный системный поток ввода для вашей программы.
 
-It is paused by default but the first time you refer to it `.resume()` will be
-called implicitly on the
-[next tick](http://nodejs.org/docs/latest/api/process.html#process_process_nexttick_callback).
+По умолчанию он находится в режиме паузы, но после первого вызова `.resume()` он начнет исполняться в
+[следующем системном тике](http://nodejs.org/docs/latest/api/process.html#process_process_nexttick_callback).
 
-If process.stdin is a tty (check with
-[`tty.isatty()`](http://nodejs.org/docs/latest/api/tty.html#tty_tty_isatty_fd))
-then input events will be line-buffered. You can turn off line-buffering by
-calling `process.stdin.setRawMode(true)` BUT the default handlers for key
-combinations such as `^C` and `^D` will be removed.
+Если process.stdin указывает на терминал (проверяется вызовом
+[`tty.isatty()`](http://nodejs.org/docs/latest/api/tty.html#tty_tty_isatty_fd)), тогда входящие данные будут буферизироваться построчно. Вы можете выключить построчную буферизацию вызвав `process.stdin.setRawMode(true)`. Однако, имейте ввиду что в этом случае обработчики системных нажатий (таких как`^C` и `^D`) будут удалены.
 
 ### [process.stdout](http://nodejs.org/api/process.html#process_process_stdout)
 
-This writable stream contains the standard system output stream for your program.
-
-`write` to it if you want to send data to stdout
+Поток на запись содержит стандартный системный вывод для вашей программы. Посылайте туда данные, если вам нужно передать их в stdout.
 
 ### [process.stderr](http://nodejs.org/api/process.html#process_process_stderr)
 
-This writable stream contains the standard system error stream for your program.
-
-`write` to it if you want to send data to stderr
+Этот поток на запись содержит стандартный системный вывод ошибок для вашей программы. Посылайте туда данные, если вам нужно передать их в stderr.
 
 ## child_process.spawn()
 
@@ -599,11 +543,9 @@ This writable stream contains the standard system error stream for your program.
 
 ### [net.connect()](http://nodejs.org/docs/latest/api/net.html#net_net_connect_options_connectionlistener)
 
-This function returns a [duplex stream] that connects over tcp to a remote
-host.
+Данная функция вернет дуплексный поток, который позволяет подключиться к удаленному хосту по протоколу tcp.
 
-You can start writing to the stream right away and the writes will be buffered
-until the `'connect'` event fires.
+Все данные которые вы будете в него записывать будут буферизироваться до тех пор, пока не возникнет событие `'connect'`.
 
 ### net.createServer()
 
