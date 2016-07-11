@@ -963,7 +963,9 @@ count = 151
 
 ***
 
-# http streams
+# http-потоки
+
+Модули из данной категории предоставляют интерфейс работы с http response/request потоками.
 
 ## [request](https://github.com/mikeal/request)
 
@@ -973,71 +975,49 @@ count = 151
 
 ***
 
-# io streams
+# Потоки ввода-вывода
 
-## [reconnect](https://github.com/dominictarr/reconnect)
+## [reconnect-core](https://github.com/juliangruber/reconnect-core)
+
+Базовый настраиваемый интерфейс для переподключения потоков при возникновении проблем в сети.
 
 ## [kv](https://github.com/dominictarr/kv)
 
-## [discovery-network](https://github.com/Raynos/discovery-network)
+Абстрактный поток, предоставляющий враппер для доступа к различным key-value хранилищам.
 
 ***
 
-# parser streams
-
-## [tar](https://github.com/creationix/node-tar)
+# Потоки-анализаторы
 
 ## [trumpet](https://github.com/substack/node-trumpet)
 
+Трансформация html-текста с использованием css-селекторов.
+
 ## [JSONStream](https://github.com/dominictarr/JSONStream)
 
-Use this module to parse and stringify json data from streams.
-
-If you need to pass a large json collection through a slow connection or you
-have a json object that will populate slowly this module will let you parse data
-incrementally as it arrives.
-
-## [json-scrape](https://github.com/substack/json-scrape)
-
-## [stream-serializer](https://github.com/dominictarr/stream-serializer)
+Стриминг `JSON.parse` и `JSON.stringify`. Примеры использования - обработка большого объема JSON-данных при недостаточном количестве оперативной памяти, обработка json "на лету" при получении его через медленные каналы, и т.п.
 
 ***
 
-# browser streams
+# Потоки для браузера
 
 ## [shoe](https://github.com/substack/shoe)
 
-## [domnode](https://github.com/maxogden/domnode)
-
-## [sorta](https://github.com/substack/sorta)
+Стриминг вебсокет событий.
 
 ## [graph-stream](https://github.com/substack/graph-stream)
 
-## [arrow-keys](https://github.com/Raynos/arrow-keys)
-
-## [attribute](https://github.com/Raynos/attribute)
-
-## [data-bind](https://github.com/travis4all/data-bind)
+Отрисовывает график в браузее по мере прихода новых данных.
 
 ***
-
-# html streams
-
-## [hyperstream](https://github.com/substack/hyperstream)
-
-
-# audio streams
-
-## [baudio](https://github.com/substack/baudio)
 
 # rpc streams
 
 ## [dnode](https://github.com/substack/dnode)
 
-[dnode](https://github.com/substack/dnode) lets you call remote functions
-through any kind of stream.
+Данный модуль дает вам возможность вызывать удаленные функции (RPC) через любой поток.
 
-Here's a basic dnode server:
+Для примера, создадим простой сервер `dnode`:
 
 ``` js
 var dnode = require('dnode');
@@ -1055,8 +1035,7 @@ var server = net.createServer(function (c) {
 server.listen(5004);
 ```
 
-then you can hack up a simple client that calls the server's `.transform()`
-function:
+потом напишем клиента, который вызывает метод сервера `.transform()`:
 
 ``` js
 var dnode = require('dnode');
@@ -1074,23 +1053,18 @@ var c = net.connect(5004);
 c.pipe(d).pipe(c);
 ```
 
-Fire up the server, then when you run the client you should see:
+После запуска, клиент выведет следующий текст:
 
 ```
 $ node client.js
 beep => BOOP
 ```
 
-The client sent `'beep'` to the server's `transform()` function and the server
-called the client's callback with the result, neat!
+Клиент послал `'beep'` на сервер, запросив выполнение метода `.transform()`, сервер вернул результат.
 
-The streaming interface that dnode provides here is a duplex stream since both
-the client and server are piped to each other (`c.pipe(d).pipe(c)`) with
-requests and responses coming from both sides.
+Интерфейс, который предоставляет `dnode`, является дуплексным потоком. Таким образом, так как и клиент и сервер подключены друг к другу (`c.pipe(d).pipe(c)`), запросы можно выполнять в обе стороны.
 
-The craziness of dnode begins when you start to pass function arguments to
-stubbed callbacks. Here's an updated version of the previous server with a
-multi-stage callback passing dance:
+`dnode` раскрывает себя во всей красе когда вы начинаете передавать аргументы к предоставленым методам. Посмотрим на обновленную версию предыдущего сервера:
 
 ``` js
 var dnode = require('dnode');
@@ -1111,7 +1085,7 @@ var server = net.createServer(function (c) {
 server.listen(5004);
 ```
 
-Here's the updated client:
+Вот обновленный клиент:
 
 ``` js
 var dnode = require('dnode');
@@ -1131,72 +1105,46 @@ var c = net.connect(5004);
 c.pipe(d).pipe(c);
 ```
 
-After we spin up the server, when we run the client now we get:
+После запуска клиента, мы увидим:
 
 ```
 $ node client.js
 beep:10 => BOOOOOOOOOOP
 ```
 
-It just works!™
+Сервер увидел аргумент, и выполнил функцию с ним!
 
-The basic idea is that you just put functions in objects and you call them from
-the other side of a stream and the functions will be stubbed out on the other
-end to do a round-trip back to the side that had the original function in the
-first place. The best thing is that when you pass functions to a stubbed
-function as arguments, those functions get stubbed out on the *other* side!
+Основная идея такая: вы просто ложите функцию в объект, и на другой стороне земного шара вызываете идентичную функцию с нужными вам аргументами. Вместо того чтобы выполниться локально, данные передаются на сервер и функция возвращает результат удаленного выполнения. Это просто работает.
 
-This approach of stubbing function arguments recursively shall henceforth be
-known as the "turtles all the way down" gambit. The return values of any of your
-functions will be ignored and only enumerable properties on objects will be
-sent, json-style.
+`dnode` работает через потоки как в node, так и в браузере. Удобно комбинировать потоки через [mux-demux](https://github.com/dominictarr/mux-demux) для создания мультиплексного потока, работающего в обе стороны.
 
-It's turtles all the way down!
-
-![turtles all the way](http://substack.net/images/all_the_way_down.png)
-
-Since dnode works in node or on the browser over any stream it's easy to call
-functions defined anywhere and especially useful when paired up with
-[mux-demux](https://github.com/dominictarr/mux-demux) to multiplex an rpc stream
-for control alongside some bulk data streams.
-
-## [rpc-stream](https://github.com/dominictarr/rpc-stream)
 
 ***
 
-# test streams
+# Тестовые потоки
 
 ## [tap](https://github.com/isaacs/node-tap)
 
+Фреймворк для тестирования node.js на основе потоков.
+
 ## [stream-spec](https://github.com/dominictarr/stream-spec)
+
+Способ описания спецификации потоков, для автоматизации их тестирования.
 
 ***
 
-# power combos
+# Примеры мощных комбинаций
 
-## distributed partition-tolerant chat
+## Распределенный устойчивый чат
 
-The [append-only](http://github.com/Raynos/append-only) module can give us a
-convenient append-only array on top of
-[scuttlebutt](https://github.com/dominictarr/scuttlebutt)
-which makes it really easy to write an eventually-consistent, distributed chat
-that can replicate with other nodes and survive network partitions.
+Модуль [append-only](http://github.com/Raynos/append-only) предоставляет нам иммутабельный массив данных, который вместе с [scuttlebutt](https://github.com/dominictarr/scuttlebutt) позволяет создать событийно-последовательный распределенный чат, который сможет взаимодействовать с остальными узлами и пережить разбиение сети.
 
-TODO: the rest
+## Свой socket.io с блекджеком
 
-## roll your own socket.io
+Мы можем создать собственное API для генерации событий через websocket с использованием потоков.
 
-We can build a socket.io-style event emitter api over streams using some of the
-libraries mentioned earlier in this document.
-
-First  we can use [shoe](http://github.com/substack/shoe)
-to create a new websocket handler server-side and
-[emit-stream](https://github.com/substack/emit-stream)
-to turn an event emitter into a stream that emits objects.
-The object stream can then be fed into
-[JSONStream](https://github.com/dominictarr/JSONStream)
-to serialize the objects and from there the serialized stream can be piped into
-the remote browser.
+Сперва, используем [shoe](http://github.com/substack/shoe) для создания серверного обработчика вебсокетов, и [emit-stream](https://github.com/substack/emit-stream) чтобы превратить эмиттер событий в поток который генерирует объекты.
+Далее, поток с объектами мы подключаем к [JSONStream](https://github.com/dominictarr/JSONStream) чтобы сеарелизовать их для передачи через сеть.
 
 ``` js
 var EventEmitter = require('events').EventEmitter;
@@ -1214,8 +1162,7 @@ var sock = shoe(function (stream) {
 });
 ```
 
-Inside the shoe callback we can emit events to the `ev` function.  Here we'll
-just emit different kinds of events on intervals:
+Теперь мы можем прозрачно генерировать события используя метод эмиттера `ev`. К примеру, несколько событий через разные промежутки времени:
 
 ``` js
 var intervals = [];
@@ -1233,7 +1180,7 @@ stream.on('end', function () {
 });
 ```
 
-Finally the shoe instance just needs to be bound to an http server:
+Наконец, экземпляр `shoe` привяжем к http-серверу:
 
 ``` js
 var http = require('http');
@@ -1243,9 +1190,7 @@ server.listen(8080);
 sock.install(server, '/sock');
 ```
 
-Meanwhile on the browser side of things just parse the json shoe stream and pass
-the resulting object stream to `eventStream()`. `eventStream()` just returns an
-event emitter that emits the server-side events:
+Между тем, на стороне браузера поток от `shoe` содержащий json обрабатывается и получившиеся объекты передаются в `eventStream()`. Таким образом, `eventStream()` возвращает эмиттер который генерирует переданные сервером события:
 
 ``` js
 var shoe = require('shoe');
@@ -1269,177 +1214,16 @@ ev.on('upper', function (msg) {
 });
 ```
 
-Use [browserify](https://github.com/substack/node-browserify) to build this
-browser source code so that you can `require()` all these nifty modules
-browser-side:
+Используем [browserify](https://github.com/substack/node-browserify) для генерации кода в браузере, чтобы мы могли делать `require()` прямо в файле:
 
 ```
 $ browserify main.js -o bundle.js
 ```
 
-Then drop a `<script src="/bundle.js"></script>` into some html and open it up
-in a browser to see server-side events streamed through to the browser side of
-things.
+Подключаем `<script src="/bundle.js"></script>` в html-страницу и открываем ее в браузере, наслаждаемся серверными событиями которые отображаются в браузере.
 
-With this streaming approach you can rely more on tiny reusable components that
-only need to know how to talk streams. Instead of routing messages through a
-global event system socket.io-style, you can focus more on breaking up your
-application into tinier units of functionality that can do exactly one thing
-well.
+Начав использовать потокозависимый подход к разработке программ, вы заметите что стали больше полагаться на маленькие переиспользуемые компоненты которым не нужно ничего кроме общего интерфейса потоков. Вместо маршрутизации сообщений через глобальную систему событий и настройки обработчиков, вы сфокусируетесь на разбитии приложения на мелкие компоненты, хорошо выполняющими какую-то одну задачу.
 
-For instance you can trivially swap out JSONStream in this example for
-[stream-serializer](https://github.com/dominictarr/stream-serializer)
-to get a different take on serialization with a different set of tradeoffs.
-You could bolt layers over top of shoe to handle
-[reconnections](https://github.com/dominictarr/reconnect) or heartbeats
-using simple streaming interfaces.
-You could even add a stream into the chain to use namespaced events with
-[eventemitter2](https://npmjs.org/package/eventemitter2) instead of the
-EventEmitter in core.
+В примере выше вы можете легко заменить `JSONStream` на [stream-serializer](https://github.com/dominictarr/stream-serializer) чтобы получить немного другой вид сериализации. Вы можете добавить дополнительный слой чтобы обрабатывать потери связи с помощью [reconnections](https://github.com/dominictarr/reconnect). Если вы захотите использовать события с областью видимости - вы вставите дополнительный поток с поддержкой [eventemitter2](https://npmjs.org/package/eventemitter2). В случае если вам потребуется изменить поведение некоторых частей потока вы сможете пропустить его через `mux-demux` и разделить на отдельные каналы каждый со своей логикой.
 
-If you want some different streams that act in different ways it would likewise
-be pretty simple to run the shoe stream in this example through mux-demux to
-create separate channels for each different kind of stream that you need.
-
-As the requirements of your system evolve over time, you can swap out each of
-these streaming pieces as necessary without as many of the all-or-nothing risks
-that more opinionated framework approaches necessarily entail.
-
-## html streams for the browser and the server
-
-We can use some streaming modules to reuse the same html rendering logic for the
-client and the server! This approach is indexable, SEO-friendly, and gives us
-realtime updates.
-
-Our renderer takes lines of json as input and returns html strings as its
-output. Text, the universal interface!
-
-render.js:
-
-``` js
-var through = require('through');
-var hyperglue = require('hyperglue');
-var fs = require('fs');
-var html = fs.readFileSync(__dirname + '/static/row.html', 'utf8');
-
-module.exports = function () {
-    return through(function (line) {
-        try { var row = JSON.parse(line) }
-        catch (err) { return this.emit('error', err) }
-
-        this.queue(hyperglue(html, {
-            '.who': row.who,
-            '.message': row.message
-        }).outerHTML);
-    });
-};
-```
-
-We can use [brfs](http://github.com/substack/brfs) to inline the
-`fs.readFileSync()` call for browser code
-and [hyperglue](https://github.com/substack/hyperglue) to update html based on
-css selectors. You don't need to use hyperglue necessarily here; anything that
-can return a string with html in it will work.
-
-The `row.html` used is just a really simple stub thing:
-
-row.html:
-
-``` html
-<div class="row">
-  <div class="who"></div>
-  <div class="message"></div>
-</div>
-```
-
-The server will just use [slice-file](https://github.com/substack/slice-file) to
-keep everything simple. [slice-file](https://github.com/substack/slice-file) is
-little more than a glorified `tail/tail -f` api but the interfaces map well to
-databases with regular results plus a changes feed like couchdb.
-
-server.js:
-
-``` js
-var http = require('http');
-var fs = require('fs');
-var hyperstream = require('hyperstream');
-var ecstatic = require('ecstatic')(__dirname + '/static');
-
-var sliceFile = require('slice-file');
-var sf = sliceFile(__dirname + '/data.txt');
-
-var render = require('./render');
-
-var server = http.createServer(function (req, res) {
-    if (req.url === '/') {
-        var hs = hyperstream({
-            '#rows': sf.slice(-5).pipe(render())
-        });
-        hs.pipe(res);
-        fs.createReadStream(__dirname + '/static/index.html').pipe(hs);
-    }
-    else ecstatic(req, res)
-});
-server.listen(8000);
-
-var shoe = require('shoe');
-var sock = shoe(function (stream) {
-    sf.follow(-1,0).pipe(stream);
-});
-sock.install(server, '/sock');
-```
-
-The first part of the server handles the `/` route and streams the last 5 lines
-from `data.txt` into the `#rows` div.
-
-The second part of the server handles realtime updates to `#rows` using
-[shoe](http://github.com/substack/shoe), a simple streaming websocket polyfill.
-
-Next we can write some simple browser code to populate the realtime updates
-from [shoe](http://github.com/substack/shoe) into the `#rows` div:
-
-``` js
-var through = require('through');
-var render = require('./render');
-
-var shoe = require('shoe');
-var stream = shoe('/sock');
-
-var rows = document.querySelector('#rows');
-stream.pipe(render()).pipe(through(function (html) {
-    rows.innerHTML += html;
-}));
-```
-
-Just compile with [browserify](http://browserify.org) and
-[brfs](http://github.com/substack/brfs):
-
-```
-$ browserify -t brfs browser.js > static/bundle.js
-```
-
-And that's it! Now we can populate `data.txt` with some silly data:
-
-```
-$ echo '{"who":"substack","message":"beep boop."}' >> data.txt
-$ echo '{"who":"zoltar","message":"COWER PUNY HUMANS"}' >> data.txt
-```
-
-then spin up the server:
-
-```
-$ node server.js
-```
-
-then navigate to `localhost:8000` where we will see our content. If we add some
-more content:
-
-```
-$ echo '{"who":"substack","message":"oh hello."}' >> data.txt
-$ echo '{"who":"zoltar","message":"HEAR ME!"}' >> data.txt
-```
-
-then the page updates automatically with the realtime updates, hooray!
-
-We're now using exactly the same rendering logic on both the client and the
-server to serve up SEO-friendly, indexable realtime content. Hooray!
+С течением времени, при изменении требований к приложению, вы легко сможете заменять устаревшие компоненты новыми, с гораздо меньшим риском получить в результате неработающую систему.
