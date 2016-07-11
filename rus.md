@@ -432,7 +432,7 @@ a.pipe(b).pipe(a)
 
 ## Трансформирующие потоки (transform) <a name="transform"></a>
 
-Трансформирующие потоки это частный случай дуплексных потоков (в обоих случаех они могут использоваться как для записи, так и чтения). Разница в том, что в случае трансформации отдаваемые данные так или иначе зависят от того что подается на вход.
+Трансформирующие потоки это частный случай дуплексных потоков (в обоих случаях они могут использоваться как для записи, так и чтения). Разница в том, что в случае трансформации отдаваемые данные так или иначе зависят от того что подается на вход.
 
 Возможно, вы также встречали второе название таких потоков - "сквозные" ("through streams"). В любом случае, это просто фильтры которые преобразовывают входящие данные и отдают их.
 
@@ -591,13 +591,13 @@ server.listen(8124, () => {
 [duplex](https://github.com/dominictarr/duplex), [duplexer](https://github.com/Raynos/duplexer) | Создание дуплексного потока
 [emit-stream](https://github.com/substack/emit-stream) | Конвертирует события (event-emitter) в поток, и обратно
 [invert-stream](https://github.com/dominictarr/invert-stream) | Создает из двух потоков один, "соединяя" вход первого потока с выходом второго и наоборот
-[map-stream](https://github.com/dominictarr/map-stream) | Создает трансформирующий поток для заданой асинхронной функции
+[map-stream](https://github.com/dominictarr/map-stream) | Создает трансформирующий поток для заданной асинхронной функции
 [remote-events](https://github.com/dominictarr/remote-events) | Позволяет объединять несколько эмиттеров событий в единый поток
 [buffer-stream](https://github.com/Raynos/buffer-stream) | Дуплексный поток, буферизирующий проходящие через него данные
 [highland](https://github.com/caolan/highland) | Управление асинхронным кодом с использованием потоков
 [auth-stream](https://github.com/Raynos/auth-stream) | Добавление слоя авторизации для доступа к потокам
 [mux-demux](https://github.com/dominictarr/mux-demux) | Создание мультифункциональных потоков на основе любых текстовых.
-[stream-router](https://github.com/Raynos/stream-router) | Роутер для потоков, созданых с помощью `mux-demux`
+[stream-router](https://github.com/Raynos/stream-router) | Роутер для потоков, созданных с помощью `mux-demux`
 [multi-channel-mdm](https://github.com/Raynos/multi-channel-mdm) | Создание постоянных потоков (каналов) из потоков `mux-demux`
 [crdt](https://github.com/dominictarr/crdt), [delta-stream](https://github.com/Raynos/delta-stream), [scuttlebutt](https://github.com/dominictarr/scuttlebutt) | Данная коллекция потоков предполагает, что операции над данными всегда возвращают один и тот же результат вне зависимости от порядка этих операций
 [request](https://github.com/mikeal/request) | Создание http-запросов
