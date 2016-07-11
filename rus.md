@@ -525,19 +525,23 @@ $ echo '{"beep":"boop"}' | node concat.js
 
 ### [process.stdout](http://nodejs.org/api/process.html#process_process_stdout)
 
-Поток на запись содержит стандартный системный вывод для вашей программы. Посылайте туда данные, если вам нужно передать их в stdout.
+Поток на запись, содержащий стандартный системный вывод для вашей программы. Посылайте туда данные, если вам нужно передать их в stdout.
 
 ### [process.stderr](http://nodejs.org/api/process.html#process_process_stderr)
 
-Этот поток на запись содержит стандартный системный вывод ошибок для вашей программы. Посылайте туда данные, если вам нужно передать их в stderr.
+Поток на запись, содержащий стандартный системный вывод ошибок для вашей программы. Посылайте туда данные, если вам нужно передать их в stderr.
 
-## child_process.spawn()
+## [child_process.spawn()](https://nodejs.org/api/child_process.html)
 
-## fs
+Данная функция запускает процесс, и возвращает объект содержащий stderr/stdin/stdout потоки данного процесса.
 
-### fs.createReadStream()
+### [fs.createReadStream()](https://nodejs.org/api/fs.html#fs_fs_createreadstream_path_options)
 
-### fs.createWriteStream()
+Поток на чтение, содержащий указанный файл. Используйте, если вам надо прочесть большой файл без больших затрат ресурсов.
+
+### [fs.createWriteStream()](https://nodejs.org/api/fs.html#fs_fs_createwritestream_path_options)
+
+Поток на запись, позволяющий сохранить переданные данные в файл.
 
 ## net
 
@@ -547,43 +551,81 @@ $ echo '{"beep":"boop"}' | node concat.js
 
 Все данные которые вы будете в него записывать будут буферизироваться до тех пор, пока не возникнет событие `'connect'`.
 
-### net.createServer()
+### [net.createServer()](https://nodejs.org/api/net.html#net_net_createserver_options_connectionlistener)
 
-## http
+Создает сервер для обработки входящих соединений. Параметром передается калбек, который вызывается при создании соединения, и содержит поток на запись.
 
-### http.request()
+``` js
+const net = require('net');
+const server = net.createServer((c) => {
+  // 'connection' listener
+  console.log('client connected');
+  c.on('end', () => {
+    console.log('client disconnected');
+  });
+  c.write('hello\r\n');
+  c.pipe(c);
+});
+server.on('error', (err) => {
+  throw err;
+});
+server.listen(8124, () => {
+  console.log('server bound');
+});
+```
 
-### http.createServer()
+### [http.request()](https://nodejs.org/api/http.html#http_http_request_options_callback)
 
-## zlib
+Создает поток на чтение, позволяющий сделать запрос к веб-серверу и вернуть результат.
 
-### zlib.createGzip()
+### [http.createServer()](https://nodejs.org/api/http.html#http_http_createserver_requestlistener)
 
-### zlib.createGunzip()
+Создает сервер для обработки входящих веб-запросов. Параметром передается калбек, который вызывается при создании соединения, и содержит поток на запись.
 
-### zlib.createDeflate()
+### [zlib.createGzip()](https://nodejs.org/api/zlib.html#zlib_zlib_creategzip_options)
 
-### zlib.createInflate()
+Трансформирующий поток, который отдает на выходе запакованый gzip.
+
+### [zlib.createGunzip()](https://nodejs.org/api/zlib.html#zlib_zlib_creategunzip_options)
+
+Трансформирующий поток, распаковывает gzip-поток.
+
+### [zlib.createDeflate()](https://nodejs.org/api/zlib.html#zlib_zlib_createdeflate_options)
+
+### [zlib.createInflate()](https://nodejs.org/api/zlib.html#zlib_zlib_createinflate_options)
 
 ***
 
-# control streams
+# Потоки для управления потоками
 
 ## [through](https://github.com/dominictarr/through)
 
+Простой способ создания дуплексного потока или конвертации "классического" в современный.
+
 ## [from](https://github.com/dominictarr/from)
+
+Аналог through, только для создания потока для чтения.
 
 ## [pause-stream](https://github.com/dominictarr/pause-stream)
 
+Позволяет буферизировать поток и получать результат буфера в произвольный момент.
+
+```js
+var ps = require('pause-stream')();
+
+badlyBehavedStream.pipe(ps.pause())
+
+aLittleLater(function (err, data) {
+  ps.pipe(createAnotherStream(data))
+  ps.resume()
+})
+```
+
 ## [concat-stream](https://github.com/maxogden/node-concat-stream)
 
-concat-stream will buffer up stream contents into a single buffer.
-`concat(cb)` just takes a single callback `cb(body)` with the buffered
-`body` when the stream has finished.
+Буферизирует поток в один общий буфер. `concat(cb)` принимает параметром только один аргумент - функцию `cb(body)`, которая вернет `body` когда поток завершится.
 
-For example, in this program, the concat callback fires with the body string
-`"beep boop"` once `cs.end()` is called.
-The program takes the body and upper-cases it, printing `BEEP BOOP.`
+К примеру, в этой программа модуль concat-stream вернет строку `"beep boop"` только после того как вызовется `cs.end()`. Результат работы программы - перевод строки в верхний регистр.
 
 ``` js
 var concat = require('concat-stream');
@@ -601,8 +643,7 @@ $ node concat.js
 BEEP BOOP.
 ```
 
-Here's an example usage of concat-stream that will parse incoming url-encoded
-form data and reply with a stringified JSON version of the form parameters:
+Следующий пример обработает строку с параметрами, и вернет их уже в JSON:
 
 ``` js
 var http = require('http');
@@ -623,23 +664,123 @@ $ curl -X POST -d 'beep=boop&dinosaur=trex' http://localhost:5005
 {"beep":"boop","dinosaur":"trex"}
 ```
 
-## [duplex](https://github.com/dominictarr/duplex)
+## [duplex](https://github.com/dominictarr/duplex) [duplexer](https://github.com/Raynos/duplexer)
 
-## [duplexer](https://github.com/Raynos/duplexer)
+Создание дуплексного потока.
 
 ## [emit-stream](https://github.com/substack/emit-stream)
 
+Конвертирует события (event-emitter) в поток, и обратно.
+
+В данном примере будет создан сервер который автоматически будет отправлять все события клиенту:
+
+```js
+var emitStream = require('emit-stream');
+var JSONStream = require('JSONStream');
+var net = require('net');
+
+var server = (function () {
+    var ev = createEmitter();
+
+    return net.createServer(function (stream) {
+        emitStream(ev)
+            .pipe(JSONStream.stringify())
+            .pipe(stream)
+        ;
+    });
+})();
+server.listen(5555);
+
+var EventEmitter = require('events').EventEmitter;
+
+function createEmitter () {
+    var ev = new EventEmitter;
+    setInterval(function () {
+        ev.emit('ping', Date.now());
+    }, 2000);
+
+    var x = 0;
+    setInterval(function () {
+        ev.emit('x', x ++);
+    }, 500);
+
+    return ev;
+}
+```
+
+Клиент, со своей стороны, может автоматически конвертировать приходящие данные обратно в события:
+
+```js
+var emitStream = require('emit-stream');
+var net = require('net');
+
+var stream = net.connect(5555)
+    .pipe(JSONStream.parse([true]))
+;
+var ev = emitStream(stream);
+
+ev.on('ping', function (t) {
+    console.log('# ping: ' + t);
+});
+
+ev.on('x', function (x) {
+    console.log('x = ' + x);
+});
+```
+
 ## [invert-stream](https://github.com/dominictarr/invert-stream)
+
+Создает из двух потоков один, "соединяя" вход первого потока с выходом второго и наоборот.
+
+Данная программа создаст из stdin и stdout дуплексный поток:
+
+```js
+var spawn = require('child_process').spawn
+  var invert = require('invert-stream')
+
+  var ch = spawn(cmd, args)
+  var inverted = invert()
+
+  ch.stdout.pipe(inverted.other).pipe(ch.sdin)
+
+  //now, we have just ONE stream: inverted
+
+  //write to che ch's stdin
+  inverted.write(data)
+
+  //read from ch's stdout
+  inverted.on('data', console.log)
+```
 
 ## [map-stream](https://github.com/dominictarr/map-stream)
 
+Создает трансформирующий поток для заданой асинхронной функции.
+
+```js
+var map = require('map-stream')
+
+map(function (data, callback) {
+  //transform data
+  // ...
+  callback(null, data)
+})
+```
+
 ## [remote-events](https://github.com/dominictarr/remote-events)
+
+Позволяет объединять несколько эмиттеров событий в единый поток.
 
 ## [buffer-stream](https://github.com/Raynos/buffer-stream)
 
+Дуплексный поток, буферизирующий запись в него.
+
 ## [event-stream](https://github.com/dominictarr/event-stream)
 
+Управление асинхронным кодом с использованием потоков. _(примечание переводчика: в случае если вы хотите использовать мощь потоков для синхронизации своего кода - обратите внимание на активно развивающуюся библиотеку [highland](https://github.com/caolan/highland) от автора async.js)_
+
 ## [auth-stream](https://github.com/Raynos/auth-stream)
+
+Добавление слоя авторизации для доступа к потокам.
 
 ***
 
