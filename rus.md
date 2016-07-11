@@ -784,17 +784,45 @@ map(function (data, callback) {
 
 ***
 
-# meta streams
+# Мультифункциональные потоки
 
 ## [mux-demux](https://github.com/dominictarr/mux-demux)
 
+Создание мультифункциональных потоков на основе любых текстовых. В данном примере используется поток, работающий с датами:
+
+```js
+var MuxDemux = require('mux-demux')
+var net = require('net')
+
+net.createServer(function (con) {
+  con.pipe(MuxDemux(function (stream) {
+    stream.on('data', console.log.bind(console))
+  })).pipe(con)
+}).listen(8642, function () {
+  var con = net.connect(8642), mx
+  con.pipe(mx = MuxDemux()).pipe(con)
+
+  var ds = mx.createWriteStream('times')
+
+  setInterval(function () {
+    ds.write(new Date().toString())
+  }, 1e3)
+})
+```
+
 ## [stream-router](https://github.com/Raynos/stream-router)
+
+Роутер для потоков, созданых с помощью `mux-demux`.
 
 ## [multi-channel-mdm](https://github.com/Raynos/multi-channel-mdm)
 
+Создание постоянных потоков (каналов) из потоков `mux-demux`.
+
 ***
 
-# state streams
+# Потоки с сохранением состояний
+
+Данная коллекция потоков предполагает, что операции над данными всегда возвращают один и тот же результат вне зависимости от порядка этих операций.
 
 ## [crdt](https://github.com/dominictarr/crdt)
 
@@ -802,27 +830,11 @@ map(function (data, callback) {
 
 ## [scuttlebutt](https://github.com/dominictarr/scuttlebutt)
 
-[scuttlebutt](https://github.com/dominictarr/scuttlebutt) can be used for
-peer-to-peer state synchronization with a mesh topology where nodes might only
-be connected through intermediaries and there is no node with an authoritative
-version of all the data.
+К примеру, `scuttlebutt` может быть использован для синхронизации состояния между узлами mesh-сети, где узлы непосредственно не связаны между собой и нет единого мастера. Пример: распределенный торрент-клиент.
 
-The kind of distributed peer-to-peer network that
-[scuttlebutt](https://github.com/dominictarr/scuttlebutt) provides is especially
-useful when nodes on different sides of network barriers need to share and
-update the same state. An example of this kind of network might be browser
-clients that send messages through an http server to each other and backend
-processes that the browsers can't directly connect to. Another use-case might be
-systems that span internal networks since IPv4 addresses are scarce.
+Под капотом `scuttlebutt` для обмена сообщений используется широко известный протокол [gossip](https://en.wikipedia.org/wiki/Gossip_protocol), который гарантирует что все узлы будут возвращать [последнее актуальное значение](https://ru.wikipedia.org/wiki/Консистентность_в_конечном_счёте).
 
-[scuttlebutt](https://github.com/dominictarr/scuttlebutt) uses a
-[gossip protocol](https://en.wikipedia.org/wiki/Gossip_protocol)
-to pass messages between connected nodes so that state across all the nodes will
-[eventually converge](https://en.wikipedia.org/wiki/Eventual_consistency)
-on the same value everywhere.
-
-Using the `scuttlebutt/model` interface, we can create some nodes and pipe them
-to each other to create whichever sort of network we want:
+Используя интерфейс `scuttlebutt/model`, мы можем создавать клиентов и связывать их между собой:
 
 ``` js
 var Model = require('scuttlebutt/model');
@@ -853,7 +865,7 @@ em.on('update', function (key, value, source) {
 am.set('x', 555);
 ```
 
-The network we've created is an undirected graph that looks like:
+Мы создали сеть в форме ненаправленного графа, которая выглядит так:
 
 ```
 a <-> b <-> c
@@ -863,25 +875,16 @@ a <-> b <-> c
       d <-> e
 ```
 
-Note that nodes `a` and `e` aren't directly connected, but when we run this
-script:
+Узлы `a` и `e` напрямую не соединены, но если мы выполним команду:
 
 ```
 $ node model.js
 x => 555 from 1347857300518
 ```
 
-the value that node `a` set finds its way to node `e` by way of nodes `b` and
-`d`. Here all the nodes are in the same process but because
-[scuttlebutt](https://github.com/dominictarr/scuttlebutt) uses a
-simple streaming interface, the nodes can be placed on any process or server and
-connected with any streaming transport that can handle string data.
+то увидим что узел  `a` будет доступен узлу `e` через узлы `b`и `d`. Учитывая то, что `scuttlebutt` использует простой потоковый интерфейс, и все узлы гарантированно получат данные - мы можем соединить любой процесс, сервер или транспорт которые поддерживают обработку строк.
 
-Next we can make a more realistic example that connects over the network and
-increments a counter variable.
-
-Here's the server which will set the initial `count` value to 0 and `count ++`
-every 320 milliseconds, printing all updates to count:
+Давайте создадим более реалистичный пример. В нем мы будем соединяться через сеть, и увеличивать счетчик каждые 320 милисекунд на всех узлах:
 
 ``` js
 var Model = require('scuttlebutt/model');
@@ -903,8 +906,7 @@ setInterval(function () {
 }, 320);
 ```
 
-Now we can make a client that connects to this server, updates the count on an
-interval, and prints all the updates it receives:
+Теперь созданим клиента, который подключается к серверу, получает обновления и выводит их на экран:
 
 ``` js
 var Model = require('scuttlebutt/model');
@@ -930,11 +932,9 @@ m.on('update', function (key, value) {
 });
 ```
 
-The client is slightly trickier since it should wait until it has an update from
-somebody else to start updating the counter itself or else its counter would be
-zeroed.
+Клиент получился чуть-чуть сложнее, так как ему приходится ждать обновления от остальных участников прежде чем убедиться что он может увеличить счетчик.
 
-Once we get the server and some clients running we should see a sequence like this:
+После того как мы запустим сервер и несколько клиентов - мы увидим изменения счетчика наподобии такого:
 
 ```
 count = 183
@@ -946,7 +946,7 @@ count = 188
 count = 189
 ```
 
-Occasionally on some of the nodes we might see a sequence with repeated values like:
+Время от времени на некоторых узлах мы будем замечать что значения повторяются:
 
 ```
 count = 147
@@ -957,18 +957,9 @@ count = 150
 count = 151
 ```
 
-These values are due to
-[scuttlebutt's](https://github.com/dominictarr/scuttlebutt)
-history-based conflict resolution algorithm which is hard at work ensuring that the state of the system across all nodes is eventually consistent.
+Это происходит потому, что мы не предоставили достаточно данных алгоритму для разрешения временных конфликтов, и ему сложнее поддерживать синхронизацию всех узлов. Вся эта магия выходит за пределы данной статьи, поэтому рекомендуем самостоятельно изучить `scuttlebutt`.
 
-Note that the server in this example is just another node with the same
-privledges as the clients connected to it. The terms "client" and "server" here
-don't affect how the state synchronization proceeds, just who initiates the
-connection. Protocols with this property are often called symmetric protocols.
-See [dnode](https://github.com/substack/dnode) for another example of a
-symmetric protocol.
-
-## [append-only](http://github.com/Raynos/append-only)
+Заметьте, в вышеприведенных примерах сервер это всего лишь еще один узел с теми же привилегиями что и остальные клиенты. Понятия "клиент" и "сервер" не затрагивают способы синхронизации данных, в данном сервер это "тот кто первым создал соединение". Подобные протоколы называют "симметричными", еще один пример подобного протокола можно посмотреть в реализации модуля [dnode](https://github.com/substack/dnode).
 
 ***
 
