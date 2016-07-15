@@ -582,33 +582,33 @@ server.listen(8124, () => {
 
 ## Список модулей <a name="modules"></a>
 Ниже приведен список npm-модулей, работающих с потоками. Список является далеко не полным, постоянно появляются новые модули и их нет возможности отслеживать. Цель данной таблицы - дать представление о "кирпичиках", из которых вы можете собрать свое приложение. Не стесняйтесь проходить по ссылкам и изучать документацию, там есть более подробное описание и примеры использования.
-|||
-:-----------:|-------------
-[through](https://github.com/dominictarr/through) | Простой способ создания дуплексного потока или конвертации "классического" в современный
-[from](https://github.com/dominictarr/from) | Аналог through, только для создания потока для чтения
-[pause-stream](https://github.com/dominictarr/pause-stream) | Позволяет буферизировать поток и получать результат буфера в произвольный момент
- [concat-stream](https://github.com/maxogden/node-concat-stream) | Буферизирует поток в один общий буфер. `concat(cb)` принимает параметром только один аргумент - функцию `cb(body)`, которая вернет `body` когда поток завершится
-[duplex](https://github.com/dominictarr/duplex), [duplexer](https://github.com/Raynos/duplexer) | Создание дуплексного потока
-[emit-stream](https://github.com/substack/emit-stream) | Конвертирует события (event-emitter) в поток, и обратно
-[invert-stream](https://github.com/dominictarr/invert-stream) | Создает из двух потоков один, "соединяя" вход первого потока с выходом второго и наоборот
-[map-stream](https://github.com/dominictarr/map-stream) | Создает трансформирующий поток для заданной асинхронной функции
-[remote-events](https://github.com/dominictarr/remote-events) | Позволяет объединять несколько эмиттеров событий в единый поток
-[buffer-stream](https://github.com/Raynos/buffer-stream) | Дуплексный поток, буферизирующий проходящие через него данные
-[highland](https://github.com/caolan/highland) | Управление асинхронным кодом с использованием потоков
-[auth-stream](https://github.com/Raynos/auth-stream) | Добавление слоя авторизации для доступа к потокам
-[mux-demux](https://github.com/dominictarr/mux-demux) | Создание мультифункциональных потоков на основе любых текстовых.
-[stream-router](https://github.com/Raynos/stream-router) | Роутер для потоков, созданных с помощью `mux-demux`
-[multi-channel-mdm](https://github.com/Raynos/multi-channel-mdm) | Создание постоянных потоков (каналов) из потоков `mux-demux`
-[crdt](https://github.com/dominictarr/crdt), [delta-stream](https://github.com/Raynos/delta-stream), [scuttlebutt](https://github.com/dominictarr/scuttlebutt) | Данная коллекция потоков предполагает, что операции над данными всегда возвращают один и тот же результат вне зависимости от порядка этих операций
-[request](https://github.com/mikeal/request) | Создание http-запросов
-[reconnect-core](https://github.com/juliangruber/reconnect-core) | Базовый настраиваемый интерфейс для переподключения потоков при возникновении проблем в сети
-[kv](https://github.com/dominictarr/kv) | Абстрактный поток, предоставляющий враппер для доступа к различным key-value хранилищам
-[trumpet](https://github.com/substack/node-trumpet) | Трансформация html-текста с использованием css-селекторов
-[JSONStream](https://github.com/dominictarr/JSONStream) | Преобразование `JSON.parse` и `JSON.stringify`. Примеры использования - обработка большого объема JSON-данных при недостаточном количестве оперативной памяти, обработка json "на лету" при получении его через медленные каналы, и т.п.
-[shoe](https://github.com/substack/shoe) | Трансляция вебсокет событий.
-[dnode](https://github.com/substack/dnode) | Данный модуль дает вам возможность вызывать удаленные функции (RPC) через любой поток
-[tap](https://github.com/isaacs/node-tap) | Фреймворк для тестирования node.js на основе потоков.
-[stream-spec](https://github.com/dominictarr/stream-spec) | Способ описания спецификации потоков, для автоматизации их тестирования.
+|            |              |
+:-----------:|------------- |
+| [through](https://github.com/dominictarr/through) | Простой способ создания дуплексного потока или конвертации "классического" в современный |
+| [from](https://github.com/dominictarr/from) | Аналог through, только для создания потока для чтения |
+| [pause-stream](https://github.com/dominictarr/pause-stream) | Позволяет буферизировать поток и получать результат буфера в произвольный момент |
+| [concat-stream](https://github.com/maxogden/node-concat-stream) | Буферизирует поток в один общий буфер. `concat(cb)` принимает параметром только один аргумент - функцию `cb(body)`, которая вернет `body` когда поток завершится |
+| [duplex](https://github.com/dominictarr/duplex), [duplexer](https://github.com/Raynos/duplexer) | Создание дуплексного потока |
+| [emit-stream](https://github.com/substack/emit-stream) | Конвертирует события (event-emitter) в поток, и обратно |
+| [invert-stream](https://github.com/dominictarr/invert-stream) | Создает из двух потоков один, "соединяя" вход первого потока с выходом второго и наоборот |
+| [map-stream](https://github.com/dominictarr/map-stream) | Создает трансформирующий поток для заданной асинхронной функции |
+| [remote-events](https://github.com/dominictarr/remote-events) | Позволяет объединять несколько эмиттеров событий в единый поток |
+| [buffer-stream](https://github.com/Raynos/buffer-stream) | Дуплексный поток, буферизирующий проходящие через него данные |
+| [highland](https://github.com/caolan/highland) | Управление асинхронным кодом с использованием потоков |
+| [auth-stream](https://github.com/Raynos/auth-stream) | Добавление слоя авторизации для доступа к потокам |
+| [mux-demux](https://github.com/dominictarr/mux-demux) | Создание мультифункциональных потоков на основе любых текстовых. |
+| [stream-router](https://github.com/Raynos/stream-router) | Роутер для потоков, созданных с помощью `mux-demux` |
+| [multi-channel-mdm](https://github.com/Raynos/multi-channel-mdm) | Создание постоянных потоков (каналов) из потоков `mux-demux` |
+| [crdt](https://github.com/dominictarr/crdt), [delta-stream](https://github.com/Raynos/delta-stream), [scuttlebutt](https://github.com/dominictarr/scuttlebutt) | Данная коллекция потоков предполагает, что операции над данными всегда возвращают один и тот же результат вне зависимости от порядка этих операций |
+| [request](https://github.com/mikeal/request) | Создание http-запросов |
+| [reconnect-core](https://github.com/juliangruber/reconnect-core) | Базовый настраиваемый интерфейс для переподключения потоков при возникновении проблем в сети |
+| [kv](https://github.com/dominictarr/kv) | Абстрактный поток, предоставляющий враппер для доступа к различным key-value хранилищам |
+| [trumpet](https://github.com/substack/node-trumpet) | Трансформация html-текста с использованием css-селекторов |
+| [JSONStream](https://github.com/dominictarr/JSONStream) | Преобразование `JSON.parse` и `JSON.stringify`. Примеры использования - обработка большого объема JSON-данных при недостаточном количестве оперативной памяти, обработка json "на лету" при получении его через медленные каналы, и т.п. |
+| [shoe](https://github.com/substack/shoe) | Трансляция вебсокет событий. |
+| [dnode](https://github.com/substack/dnode) | Данный модуль дает вам возможность вызывать удаленные функции (RPC) через любой поток |
+| [tap](https://github.com/isaacs/node-tap) | Фреймворк для тестирования node.js на основе потоков. |
+| [stream-spec](https://github.com/dominictarr/stream-spec) | Способ описания спецификации потоков, для автоматизации их тестирования. |
 
 ## Примеры использования <a name="examples"></a>
 
